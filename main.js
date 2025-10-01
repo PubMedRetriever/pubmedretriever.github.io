@@ -24,7 +24,7 @@ function search()
             files[0].text().then(async (data) =>
             {
                 let lines = data.split('\n');
-                let ids = ["Student Last,Student First,Advisor Last,Advisor First,Student First Author"];
+                let ids = ["Student Last,Student First,Advisor Last,Advisor First,PMID,Student First Author"];
 
                 let progress = document.createElement("p");
 
