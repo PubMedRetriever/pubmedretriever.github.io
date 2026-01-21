@@ -21,6 +21,9 @@ function search()
 
         else
         {
+            let include_errata = document.getElementById("include-errata").checked;
+            let include_preprint = document.getElementById("include-preprint").checked;
+
             files[0].text().then(async (data) =>
             {
                 let lines = data.split('\n');
@@ -37,8 +40,8 @@ function search()
                 {
                     let split = lines[i].split(',').map((x) => x.trim());
 
-                    await getIds(split[1], split[0], split[3], split[2], true, ids);
-                    await getIds(split[1], split[0], split[3], split[2], false, ids);
+                    await getIds(split[1], split[0], split[3], split[2], true, ids, include_errata, include_preprint);
+                    await getIds(split[1], split[0], split[3], split[2], false, ids, include_errata, include_preprint);
 
                     progress.innerHTML = `${parseInt(i) + 1} of ${lines.length} completed.`;
                 }
@@ -58,12 +61,12 @@ function search()
     }
 }
 
-async function getIds(student_first, student_last, advisor_first, advisor_last, first_author, ids)
+async function getIds(student_first, student_last, advisor_first, advisor_last, first_author, ids, include_errata, include_preprint)
 {
     if (student_first == undefined || student_last == undefined) return;
 
     let url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?tool=OSU_PubMed_Retriever&email=isaacbrown5763@gmail.com&api-key=ea9a2db47a29da803ed4e25b9327a5e01e08&db=pubmed&term=";
-    
+
     if (advisor_first == "" || advisor_last == "")
     {
         url += `${student_first}%20${student_last}+${first_author ? "AND" : "NOT"}+${student_last},%20${student_first[0]}[1au]`;
@@ -72,6 +75,16 @@ async function getIds(student_first, student_last, advisor_first, advisor_last, 
     else
     {
         url += `${student_first}%20${student_last}+AND+${advisor_first}%20${advisor_last}+${first_author ? "AND" : "NOT"}+${student_last},%20${student_first[0]}[1au]`;
+    }
+
+    if (!include_errata)
+    {
+        url += "+NOT+published+erratum+NOT+erratum+[ti]"
+    }
+
+    if (!include_preprint)
+    {
+        url += "+NOT+preprint"
     }
 
     let idElements = await fetch(url).then(x => x.text()).then(x => new window.DOMParser().parseFromString(x, "text/xml")).then(x => x.getElementsByTagName("Id"));
